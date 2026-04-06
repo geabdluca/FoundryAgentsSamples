@@ -35,9 +35,19 @@ This sample shows how to connect an Azure AI Foundry agent directly to an **Azur
 
 ## Setup
 
-### 1. Install dependencies
+### 1. Create a virtual environment and install dependencies
 
 ```bash
+# Create and activate a virtual environment
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# macOS / Linux
+source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 

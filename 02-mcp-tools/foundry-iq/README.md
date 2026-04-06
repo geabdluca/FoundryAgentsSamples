@@ -50,9 +50,19 @@ When a user asks a question, the agent calls the MCP tool, which triggers the kn
 
 ## Setup
 
-### 1. Install dependencies
+### 1. Create a virtual environment and install dependencies
 
 ```bash
+# Create and activate a virtual environment
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# macOS / Linux
+source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
