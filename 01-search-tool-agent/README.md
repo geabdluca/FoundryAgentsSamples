@@ -51,6 +51,12 @@ source .searchvenv/bin/activate
 pip install -r requirements.txt
 ```
 
+> **Windows ARM64**: If `pip install` fails building `cryptography` from source, upgrade pip first then use `--prefer-binary`:
+> ```bash
+> python -m pip install --upgrade pip
+> pip install -r requirements.txt --prefer-binary
+> ```
+
 ### 2. Fill in `config.json`
 
 | Key | Where to find it / Description |
@@ -117,6 +123,7 @@ python agent_search_tool.py
 | Error | Likely cause |
 |---|---|
 | `401/403` on search queries | Foundry project managed identity missing **Search Index Data Contributor** or **Search Service Contributor** role |
+| `403` from `setup_search.py` despite correct roles | Search service **API access control** is set to **API keys only** — token auth is silently rejected. Go to Azure portal → AI Search service → **Settings → Keys** → set to **"Both"** or **"Role-based access control"** |
 | `403` from ARM when creating connection | User identity missing write permissions on the Foundry project |
 | `connection not found` | `search_connection_name` does not match an existing connection in your Foundry project |
 | Index not found | `index_name` mismatch — check case-sensitive name in Azure AI Search |

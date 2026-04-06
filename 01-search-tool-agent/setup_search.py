@@ -24,7 +24,9 @@ Reference:
   https://learn.microsoft.com/en-us/azure/search/search-get-started-portal-import-vectors
 """
 
+import argparse
 import json
+import logging
 import sys
 from pathlib import Path
 
@@ -47,79 +49,7 @@ from azure.search.documents.indexes.models import (
 # ---------------------------------------------------------------------------
 
 CONFIG_PATH = Path(__file__).parent / "config.json"
-
-# Sample documents uploaded to the index on first run.
-# Replace or extend these with your own content.
-SAMPLE_DOCUMENTS = [
-    {
-        "id": "1",
-        "title": "Azure AI Foundry Overview",
-        "content": (
-            "Azure AI Foundry is a unified platform for building, evaluating, and deploying AI "
-            "models and applications. It brings together Azure OpenAI Service, Azure AI Search, "
-            "and other Azure AI services into a single development experience, enabling teams to "
-            "build enterprise-grade AI solutions end to end."
-        ),
-        "source": "azure-ai-foundry-overview",
-    },
-    {
-        "id": "2",
-        "title": "Azure AI Search Tool for Foundry Agents",
-        "content": (
-            "The Azure AI Search tool connects a Foundry agent directly to a search index for "
-            "grounded retrieval. The agent queries the index using simple, semantic, or vector "
-            "search and returns answers with inline citations. No knowledge base object is "
-            "required — the tool targets the index directly via a CognitiveSearch project connection."
-        ),
-        "source": "azure-ai-search-tool",
-    },
-    {
-        "id": "3",
-        "title": "Azure AI Search Semantic Ranking",
-        "content": (
-            "Semantic ranker in Azure AI Search uses large language models to promote results that "
-            "are semantically relevant even when keyword matches are weak. It improves answer quality "
-            "for natural language queries. Semantic ranker is available on the Basic pricing tier "
-            "and above."
-        ),
-        "source": "azure-search-semantic-ranking",
-    },
-    {
-        "id": "4",
-        "title": "DefaultAzureCredential and Managed Identity",
-        "content": (
-            "DefaultAzureCredential from the Azure Identity SDK tries a chain of authentication "
-            "methods in order: environment variables, workload identity, managed identity, Azure CLI, "
-            "and others. For local development, run 'az login' and DefaultAzureCredential will use "
-            "your Azure CLI session. In production, assign a managed identity to your resource and "
-            "grant it the necessary RBAC roles."
-        ),
-        "source": "azure-identity-defaultcredential",
-    },
-    {
-        "id": "5",
-        "title": "Foundry Agent Service Overview",
-        "content": (
-            "Foundry Agent Service lets you build AI agents that can reason, plan, and use tools "
-            "to complete tasks. Agents are backed by LLM deployments in your Foundry project and "
-            "can be connected to Azure AI Search, code interpreters, MCP servers, and other tools. "
-            "Agents maintain conversation state and support multi-turn interactions."
-        ),
-        "source": "foundry-agent-service-overview",
-    },
-    {
-        "id": "6",
-        "title": "RBAC and Private Networking for Azure AI Search",
-        "content": (
-            "When Azure AI Search is deployed in a private virtual network, all connections must "
-            "use RBAC (role-based access control) with managed identity authentication. Key-based "
-            "authentication is not supported with private networking. The Foundry project's managed "
-            "identity must be assigned the Search Index Data Contributor and Search Service "
-            "Contributor roles on the search service."
-        ),
-        "source": "azure-search-private-networking",
-    },
-]
+DATA_DIR = Path(__file__).parent / "data"
 
 
 def load_config(path: Path) -> dict:
@@ -162,9 +92,9 @@ def create_index(
     """
     fields = [
         SimpleField(name="id", type=SearchFieldDataType.String, key=True, filterable=True),
-        SearchField(name="title", type=SearchFieldDataType.String, searchable=True, retrievable=True),
-        SearchField(name="content", type=SearchFieldDataType.String, searchable=True, retrievable=True),
-        SimpleField(name="source", type=SearchFieldDataType.String, retrievable=True, filterable=True),
+        SearchField(name="title", type=SearchFieldDataType.String, searchable=True),
+        SearchField(name="content", type=SearchFieldDataType.String, searchable=True),
+        SimpleField(name="source", type=SearchFieldDataType.String, filterable=True),
     ]
 
     semantic_config = SemanticConfiguration(
@@ -189,20 +119,54 @@ def create_index(
 # Step 2: Upload sample documents
 # ---------------------------------------------------------------------------
 
+def load_documents_from_disk(data_dir: Path) -> list[dict]:
+    """
+    Load all .md and .txt files from data_dir as search documents.
+    Each file becomes one document:
+      - id:      filename without extension
+      - title:   first heading (# ...) if present, otherwise the filename
+      - content: full file text
+      - source:  relative path from data_dir
+    """
+    documents = []
+    paths = sorted(data_dir.glob("*.md")) + sorted(data_dir.glob("*.txt"))
+    for i, path in enumerate(paths, start=1):
+        text = path.read_text(encoding="utf-8")
+        # Extract the first markdown heading as the title, fall back to filename.
+        title = path.stem.replace("-", " ").replace("_", " ").title()
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("# "):
+                title = stripped.lstrip("# ").strip()
+                break
+        documents.append({
+            "id": str(i),
+            "title": title,
+            "content": text,
+            "source": path.name,
+        })
+    if not documents:
+        print(f"WARNING: No .md or .txt files found in '{data_dir}'. Nothing will be uploaded.")
+    return documents
+
+
 def upload_documents(
     credential: DefaultAzureCredential,
     search_service_endpoint: str,
     index_name: str,
 ) -> None:
-    """Upload SAMPLE_DOCUMENTS using merge-or-upload (idempotent — safe to re-run)."""
+    """Load documents from the data/ folder and upload using merge-or-upload (idempotent)."""
+    documents = load_documents_from_disk(DATA_DIR)
+    if not documents:
+        return
     search_client = SearchClient(
         endpoint=search_service_endpoint,
         index_name=index_name,
         credential=credential,
     )
-    result = search_client.merge_or_upload_documents(documents=SAMPLE_DOCUMENTS)
+    result = search_client.merge_or_upload_documents(documents=documents)
     succeeded = sum(1 for r in result if r.succeeded)
-    print(f"[OK] Uploaded {succeeded}/{len(SAMPLE_DOCUMENTS)} documents to '{index_name}'.")
+    print(f"[OK] Uploaded {succeeded}/{len(documents)} documents to '{index_name}'.")
 
 
 # ---------------------------------------------------------------------------
@@ -243,4 +207,14 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable Azure SDK HTTP logging")
+    args = parser.parse_args()
+
+    if args.verbose:
+        logging.basicConfig(format="%(levelname)s:%(name)s:%(message)s", level=logging.WARNING)
+        logging.getLogger("azure").setLevel(logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.WARNING)
+
     main()

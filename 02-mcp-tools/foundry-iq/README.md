@@ -66,6 +66,12 @@ source .foundryiqvenv/bin/activate
 pip install -r requirements.txt
 ```
 
+> **Windows ARM64**: If `pip install` fails building `cryptography` from source, upgrade pip first then use `--prefer-binary`:
+> ```bash
+> python -m pip install --upgrade pip
+> pip install -r requirements.txt --prefer-binary
+> ```
+
 ### 2. Fill in `config.json`
 
 **Azure AI Foundry**
