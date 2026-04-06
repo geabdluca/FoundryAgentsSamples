@@ -52,7 +52,7 @@ from azure.ai.projects.models import (
     AzureAISearchToolResource,
     PromptAgentDefinition,
 )
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from azure.identity import DefaultAzureCredential
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -87,6 +87,9 @@ def load_config(path: Path) -> dict:
         "agent_model",
         "user_query",
     ]
+    # project_resource_id is only needed when create_search_connection: true
+    if cfg.get("create_search_connection", False):
+        required_keys.append("project_resource_id")
     missing = [k for k in required_keys if not cfg.get(k) or str(cfg[k]).startswith("<")]
     if missing:
         print(
@@ -110,32 +113,21 @@ def create_search_connection(
     search_service_endpoint: str,
 ) -> None:
     """
-    Create (or update) a CognitiveSearch project connection via Azure Resource Manager.
+    Create (or update) a CognitiveSearch project connection via the Azure ARM API.
 
-    This registers your Azure AI Search service as a named connection in the Foundry
-    project. The agent resolves the full connection resource ID from this name at runtime.
-
-    authType: ProjectManagedIdentity
-      RBAC-based auth with no stored credentials. Required for private VNet / endpoint
-      scenarios where key-based auth is disabled on the search service.
-      The Foundry project's managed identity must have:
-        - Search Index Data Contributor
-        - Search Service Contributor
-      on the Azure AI Search service.
+    Uses PUT {ARM}/{project_resource_id}/connections/{name} — idempotent upsert.
+    Registers the Azure AI Search service as a named connection in the Foundry project
+    using the project's managed identity (RBAC, no stored credentials).
     """
-    bearer_token_provider = get_bearer_token_provider(
-        credential, "https://management.azure.com/.default"
-    )
+    token = credential.get_token("https://management.azure.com/.default").token
     headers = {
-        "Authorization": f"Bearer {bearer_token_provider()}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
-
     url = (
         f"https://management.azure.com{project_resource_id}"
         f"/connections/{search_connection_name}?api-version={ARM_API_VERSION}"
     )
-
     payload = {
         "name": search_connection_name,
         "type": "Microsoft.MachineLearningServices/workspaces/connections",
@@ -144,14 +136,13 @@ def create_search_connection(
             "category": "CognitiveSearch",
             "target": search_service_endpoint.rstrip("/"),
             "isSharedToAll": True,
-            "metadata": {
-                "ApiType": "Azure",
-                "audience": "https://search.azure.com/",
-            },
+            "audience": "https://search.azure.com/",
+            "metadata": {"ApiType": "Azure"},
         },
     }
-
     response = requests.put(url, headers=headers, json=payload, timeout=60)
+    if not response.ok:
+        print(f"  Response body: {response.text}")
     response.raise_for_status()
     print(f"[OK] Search connection '{search_connection_name}' created/updated.")
 
@@ -264,13 +255,7 @@ def main() -> None:
 
     # -- Step 1: Create search connection (optional) --
     if cfg.get("create_search_connection", False):
-        project_resource_id = cfg.get("project_resource_id", "")
-        if not project_resource_id or project_resource_id.startswith("<"):
-            print(
-                "ERROR: create_search_connection is true but project_resource_id is "
-                "missing or still a placeholder in config.json."
-            )
-            sys.exit(1)
+        project_resource_id = cfg["project_resource_id"]
         print("\n=== Step 1: Creating search connection ===")
         create_search_connection(
             credential=credential,

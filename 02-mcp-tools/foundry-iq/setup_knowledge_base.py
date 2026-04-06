@@ -205,6 +205,7 @@ def create_knowledge_source(
     }
     payload = {
         "name": knowledge_source_name,
+        "kind": "searchIndex",
         "searchIndexParameters": {
             "searchIndexName": index_name,
             "semanticConfigurationName": semantic_config_name,
@@ -217,6 +218,8 @@ def create_knowledge_source(
     }
 
     response = requests.put(url, headers=headers, json=payload, timeout=60)
+    if not response.ok:
+        print(f"  Response body: {response.text}")
     response.raise_for_status()
     print(f"[OK] Knowledge source '{knowledge_source_name}' created/updated.")
 
@@ -260,15 +263,18 @@ def create_knowledge_base(
         "Content-Type": "application/json",
     }
 
+    has_model = bool(aoai_endpoint and aoai_deployment and aoai_model)
+
     payload: dict = {
         "name": knowledge_base_name,
         "description": "Foundry IQ knowledge base for agent sample",
         "knowledgeSources": [{"name": knowledge_source_name}],
-        "retrievalReasoningEffort": {"kind": "low"},
-        "outputMode": "answerSynthesis",
+        "retrievalReasoningEffort": {"kind": "minimal"},
     }
 
-    if aoai_endpoint and aoai_deployment and aoai_model:
+    if has_model:
+        payload["retrievalReasoningEffort"] = {"kind": "low"}
+        payload["outputMode"] = "answerSynthesis"
         payload["models"] = [
             {
                 "kind": "azureOpenAI",
@@ -281,16 +287,22 @@ def create_knowledge_base(
         ]
         print(
             f"  Knowledge base will use AOAI model '{aoai_deployment}' "
-            f"at '{aoai_endpoint}' for LLM-based query planning."
+            f"at '{aoai_endpoint}' for LLM-based query planning and answer synthesis."
         )
     else:
         print(
-            "  No AOAI model configured — knowledge base uses minimal retrieval reasoning "
-            "(no LLM-based query planning inside the KB). "
-            "The Foundry Agent's LLM handles answer synthesis."
+            "  No AOAI model configured — omitting outputMode and retrievalReasoningEffort "
+            "(both require a model). Using API defaults for basic retrieval."
         )
 
+    import json as _json
+    print(f"  [VERBOSE] PUT {url}")
+    print(f"  [VERBOSE] Payload: {_json.dumps(payload, indent=2)}")
+
     response = requests.put(url, headers=headers, json=payload, timeout=60)
+    print(f"  [VERBOSE] Response status: {response.status_code}")
+    if not response.ok:
+        print(f"  Response body: {response.text}")
     response.raise_for_status()
     print(f"[OK] Knowledge base '{knowledge_base_name}' created/updated.")
 

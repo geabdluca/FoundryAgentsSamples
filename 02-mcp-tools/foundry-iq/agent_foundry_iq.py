@@ -3,7 +3,7 @@ Sample: Foundry IQ Agent (MCP Tool)
 =====================================
 Demonstrates an end-to-end flow for:
   1. Optionally creating a RemoteTool project connection that registers the Foundry IQ
-     knowledge base MCP endpoint in your Foundry project.
+     knowledge base MCP endpoint in your Foundry project (via ARM REST API).
   2. Creating (or updating) a Foundry Agent that uses MCPTool to call the knowledge base.
   3. Running a single-turn query against the agent and printing the grounded response.
 
@@ -30,8 +30,8 @@ Prerequisites:
     -> Run setup_knowledge_base.py first if you need to create the index, knowledge
        source, and knowledge base.
   - RBAC: Foundry project managed identity needs Search Index Data Reader on the search service
-  - RBAC: Your user identity needs ARM write (Contributor or connections/write) on the
-    Foundry project to create the RemoteTool connection (only if create_project_connection=true)
+  - RBAC: Your user identity needs Contributor (or connections/write) on the Foundry project
+    to create the RemoteTool connection (only if create_project_connection: true)
   - pip install -r requirements.txt
   - az login when running locally
 
@@ -46,7 +46,7 @@ from pathlib import Path
 import requests
 from azure.ai.projects import AIProjectClient
 from azure.ai.projects.models import MCPTool, PromptAgentDefinition
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from azure.identity import DefaultAzureCredential
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -82,6 +82,9 @@ def load_config(path: Path) -> dict:
         "agent_model",
         "user_query",
     ]
+    # project_resource_id is only needed when create_project_connection: true
+    if cfg.get("create_project_connection", False):
+        required_keys.append("project_resource_id")
     missing = [k for k in required_keys if not cfg.get(k) or str(cfg[k]).startswith("<")]
     if missing:
         print(
@@ -105,50 +108,36 @@ def create_project_connection(
     kb_mcp_endpoint: str,
 ) -> None:
     """
-    Create (or update) a RemoteTool project connection via Azure Resource Manager.
+    Create (or update) a RemoteTool project connection via the Azure ARM API.
 
-    The connection target is the knowledge base MCP endpoint on the Azure AI Search
-    service. Foundry uses this connection to route agent tool calls to the knowledge
-    base and authenticate with the search service via the project's managed identity.
-
-    authType: ProjectManagedIdentity
-      RBAC-based auth with no stored credentials. Required for private VNet / endpoint
-      scenarios where key-based auth is disabled on the search service.
-      The Foundry project's managed identity must have:
-        - Search Index Data Reader
-      on the Azure AI Search service.
+    Uses PUT {ARM}/{project_resource_id}/connections/{name} — idempotent upsert.
+    The connection registers the knowledge base MCP endpoint in the Foundry project
+    and uses the project's managed identity (RBAC) to authenticate to the search service.
     """
-    bearer_token_provider = get_bearer_token_provider(
-        credential, "https://management.azure.com/.default"
-    )
+    token = credential.get_token("https://management.azure.com/.default").token
     headers = {
-        "Authorization": f"Bearer {bearer_token_provider()}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
-
     url = (
         f"https://management.azure.com{project_resource_id}"
         f"/connections/{project_connection_name}?api-version={ARM_API_VERSION}"
     )
-
     payload = {
         "name": project_connection_name,
         "type": "Microsoft.MachineLearningServices/workspaces/connections",
         "properties": {
             "authType": "ProjectManagedIdentity",
             "category": "RemoteTool",
-            # The target is the knowledge base MCP endpoint — Foundry routes agent
-            # tool calls to this URL and authenticates via project managed identity.
             "target": kb_mcp_endpoint,
             "isSharedToAll": True,
-            "metadata": {
-                "ApiType": "Azure",
-                "audience": "https://search.azure.com/",
-            },
+            "audience": "https://search.azure.com/",
+            "metadata": {"ApiType": "Azure"},
         },
     }
-
     response = requests.put(url, headers=headers, json=payload, timeout=60)
+    if not response.ok:
+        print(f"  Response body: {response.text}")
     response.raise_for_status()
     print(f"[OK] Project connection '{project_connection_name}' created/updated.")
 
@@ -168,6 +157,16 @@ def create_agent(
     Create (or update) a Foundry Agent that uses the Foundry IQ knowledge base
     as an MCP tool for agentic retrieval.
     """
+    # Resolve full connection resource ID from the connection name
+    connection = project_client.connections.get(project_connection_name)
+    connection_id = connection.id
+    print(f"  [VERBOSE] Resolved connection:")
+    print(f"    id:       {connection.id}")
+    print(f"    name:     {connection.name}")
+    print(f"    type:     {connection.type}")
+    print(f"    target:   {connection.target}")
+    print(f"    metadata: {connection.metadata}")
+
     mcp_kb_tool = MCPTool(
         server_label="knowledge-base",
         server_url=kb_mcp_endpoint,
@@ -175,7 +174,7 @@ def create_agent(
         # knowledge_base_retrieve is the only MCP tool currently supported
         # by Azure AI Search knowledge bases for Foundry Agent Service.
         allowed_tools=["knowledge_base_retrieve"],
-        project_connection_id=project_connection_name,
+        project_connection_id=connection_id,
     )
 
     agent = project_client.agents.create_version(
@@ -204,11 +203,22 @@ def run_query(project_client: AIProjectClient, agent, user_query: str) -> None:
 
     print(f"\n[USER] {user_query}\n")
 
+    body = {
+        "input": user_query,
+        "agent_reference": {
+            "name": agent.name,
+            "type": "agent_reference",
+        },
+    }
+    print(f"  [VERBOSE] responses.create body: {body}")
+
     conversation = openai_client.conversations.create()
+    print(f"  [VERBOSE] conversation id: {conversation.id}")
 
     response = openai_client.responses.create(
         conversation=conversation.id,
         input=user_query,
+        tool_choice="required",
         extra_body={
             "agent_reference": {
                 "name": agent.name,
@@ -245,13 +255,7 @@ def main() -> None:
 
     # -- Step 1: Create project connection (optional) --
     if cfg.get("create_project_connection", False):
-        project_resource_id = cfg.get("project_resource_id", "")
-        if not project_resource_id or project_resource_id.startswith("<"):
-            print(
-                "ERROR: create_project_connection is true but project_resource_id is "
-                "missing or still a placeholder in config.json."
-            )
-            sys.exit(1)
+        project_resource_id = cfg["project_resource_id"]
         print("\n=== Step 1: Creating project connection ===")
         create_project_connection(
             credential=credential,
@@ -263,12 +267,13 @@ def main() -> None:
         print("\n=== Step 1: Skipped (create_project_connection=false) ===")
         print(f"  Using existing connection: '{project_connection_name}'.")
 
-    # -- Step 2: Create agent --
-    print("\n=== Step 2: Creating agent ===")
     project_client = AIProjectClient(
         endpoint=project_endpoint,
         credential=credential,
     )
+
+    # -- Step 2: Create agent --
+    print("\n=== Step 2: Creating agent ===")
     agent = create_agent(
         project_client=project_client,
         agent_name=agent_name,

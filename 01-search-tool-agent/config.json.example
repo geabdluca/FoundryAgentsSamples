@@ -3,14 +3,13 @@
 
   "_section_foundry": "--- Azure AI Foundry project ---",
   "project_endpoint": "https://<your-foundry-resource>.services.ai.azure.com/api/projects/<your-project>",
-  "_comment_resource_id": "Only required when create_search_connection is true",
-  "project_resource_id": "",
+  "project_resource_id": "/subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.MachineLearningServices/workspaces/<project-name>",
 
   "_section_search": "--- Azure AI Search service ---",
   "search_service_endpoint": "https://<your-search-service>.search.windows.net",
 
   "_section_connection": "--- Foundry project connection to Azure AI Search ---",
-  "_comment_create_connection": "Set to true to create/update the connection via ARM (requires project_resource_id and ARM write permissions). Set to false if the connection already exists in your Foundry project — recommended for most cases.",
+  "_comment_create_connection": "Set to true to create/update the CognitiveSearch connection via ARM (requires project_resource_id). Set to false if the connection already exists in your Foundry project.",
   "create_search_connection": false,
   "search_connection_name": "<your-foundry-search-connection-name>",
 
@@ -24,5 +23,5 @@
   "agent_model": "<your-model-deployment-name>",
 
   "_section_query": "--- Query ---",
-  "user_query": "What is Azure AI Foundry and how does it connect to Azure AI Search?"
+  "user_query": "What is the Contoso travel expense policy for meals and accommodation?"
 }
