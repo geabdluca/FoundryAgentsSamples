@@ -54,13 +54,13 @@ When a user asks a question, the agent calls the MCP tool, which triggers the kn
 
 ```bash
 # Create and activate a virtual environment
-python -m venv .venv
+python -m venv foundryiqvenv
 
 # Windows
-.venv\Scripts\activate
+foundryiqvenv\Scripts\activate
 
 # macOS / Linux
-source .venv/bin/activate
+source foundryiqvenv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt

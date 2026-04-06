@@ -1,10 +1,13 @@
-﻿# Python
+﻿# Virtual environments
 __pycache__/
 *.py[cod]
 *.pyo
 .venv/
 venv/
 env/
+searchvenv/
+foundryiqvenv/
+codeinterpretervenv/
 *.egg-info/
 dist/
 build/
