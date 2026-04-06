@@ -1,0 +1,7 @@
+{
+    "project_endpoint": "<your-foundry-project-endpoint>",
+    "agent_name": "code-interpreter-agent",
+    "agent_model": "<your-model-deployment-name>",
+    "user_query": "Describe the dataset columns using the file search tool, then use the code interpreter to compute the mean, standard deviation, and correlation with the Outcome column for each feature.",
+    "csv_file": "data/diabetes.csv"
+}
