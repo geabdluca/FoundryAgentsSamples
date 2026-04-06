@@ -6,7 +6,7 @@ This folder contains samples that use **Model Context Protocol (MCP)** to connec
 
 | Folder | Tool | Description |
 |---|---|---|
-| `foundry-iq/` | Foundry IQ via MCP | Connects a Foundry agent to an Azure AI Search **knowledge base** using the MCP endpoint. Enables agentic retrieval: LLM-based query planning, parallel subqueries, semantic reranking, and answer synthesis. |
+| [`foundry-iq/`](foundry-iq/README.md) | Foundry IQ via MCP | Connects a Foundry agent to an Azure AI Search **knowledge base** using the MCP endpoint. Enables agentic retrieval: LLM-based query planning, parallel subqueries, semantic reranking, and answer synthesis. |
 
 > Additional MCP tool samples can be added as subfolders here (e.g. `sharepoint/`, `custom-mcp-server/`).
 
