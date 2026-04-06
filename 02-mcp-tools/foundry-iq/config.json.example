@@ -1,0 +1,39 @@
+{
+  "_comment": "Copy this file to config.json and fill in your real values. config.json is git-ignored.",
+
+  "_section_foundry": "--- Azure AI Foundry project ---",
+  "project_endpoint": "https://<your-foundry-resource>.services.ai.azure.com/api/projects/<your-project>",
+  "_comment_resource_id": "Only required when create_project_connection is true",
+  "project_resource_id": "",
+
+  "_section_search": "--- Azure AI Search service ---",
+  "search_service_endpoint": "https://<your-search-service>.search.windows.net",
+
+  "_section_index": "--- Search index (used by setup_knowledge_base.py) ---",
+  "_comment_create_index": "Set to true to create the index and upload sample documents. Set to false to use an existing index — index_name must match your existing index.",
+  "create_search_index": true,
+  "index_name": "foundry-iq-sample-index",
+  "semantic_config_name": "semantic-config",
+
+  "_section_knowledge_source": "--- Knowledge source (used by setup_knowledge_base.py) ---",
+  "knowledge_source_name": "foundry-iq-sample-ks",
+
+  "_section_knowledge_base": "--- Knowledge base (used by setup_knowledge_base.py and agent_foundry_iq.py) ---",
+  "knowledge_base_name": "foundry-iq-sample-kb",
+  "_comment_aoai": "Optional: Azure OpenAI endpoint and deployment for LLM-based query planning inside the knowledge base. Leave empty to skip — the Foundry Agent's LLM handles answer synthesis either way.",
+  "aoai_endpoint": "",
+  "aoai_deployment": "",
+  "aoai_model": "",
+
+  "_section_connection": "--- Foundry project connection (RemoteTool / MCP) ---",
+  "_comment_create_connection": "Set to true to create/update the RemoteTool connection via ARM (requires project_resource_id and ARM write permissions). Set to false if the connection already exists in your Foundry project.",
+  "create_project_connection": false,
+  "project_connection_name": "<your-foundry-mcp-connection-name>",
+
+  "_section_agent": "--- Foundry Agent ---",
+  "agent_name": "foundry-iq-agent",
+  "agent_model": "<your-model-deployment-name>",
+
+  "_section_query": "--- Query ---",
+  "user_query": "What is Foundry IQ and how does it connect to Azure AI Search?"
+}

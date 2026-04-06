@@ -1,0 +1,28 @@
+{
+  "_comment": "Copy this file to config.json and fill in your real values. config.json is git-ignored.",
+
+  "_section_foundry": "--- Azure AI Foundry project ---",
+  "project_endpoint": "https://<your-foundry-resource>.services.ai.azure.com/api/projects/<your-project>",
+  "_comment_resource_id": "Only required when create_search_connection is true",
+  "project_resource_id": "",
+
+  "_section_search": "--- Azure AI Search service ---",
+  "search_service_endpoint": "https://<your-search-service>.search.windows.net",
+
+  "_section_connection": "--- Foundry project connection to Azure AI Search ---",
+  "_comment_create_connection": "Set to true to create/update the connection via ARM (requires project_resource_id and ARM write permissions). Set to false if the connection already exists in your Foundry project — recommended for most cases.",
+  "create_search_connection": false,
+  "search_connection_name": "<your-foundry-search-connection-name>",
+
+  "_section_index": "--- Search index ---",
+  "_comment_index": "Run setup_search.py once to create the index and upload sample documents. If you already have an index, set index_name to match it and skip setup_search.py.",
+  "index_name": "search-tool-sample-index",
+  "semantic_config_name": "semantic-config",
+
+  "_section_agent": "--- Foundry Agent ---",
+  "agent_name": "search-tool-agent",
+  "agent_model": "<your-model-deployment-name>",
+
+  "_section_query": "--- Query ---",
+  "user_query": "What is Azure AI Foundry and how does it connect to Azure AI Search?"
+}
