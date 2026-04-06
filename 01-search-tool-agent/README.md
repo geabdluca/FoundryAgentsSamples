@@ -39,13 +39,13 @@ This sample shows how to connect an Azure AI Foundry agent directly to an **Azur
 
 ```bash
 # Create and activate a virtual environment
-python -m venv searchvenv
+python -m venv .searchvenv
 
 # Windows
-searchvenv\Scripts\activate
+.searchvenv\Scripts\activate
 
 # macOS / Linux
-source searchvenv/bin/activate
+source .searchvenv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt

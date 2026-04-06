@@ -5,9 +5,9 @@ __pycache__/
 .venv/
 venv/
 env/
-searchvenv/
-foundryiqvenv/
-codeinterpretervenv/
+.searchvenv/
+.foundryiqvenv/
+.codeinterpretervenv/
 *.egg-info/
 dist/
 build/
