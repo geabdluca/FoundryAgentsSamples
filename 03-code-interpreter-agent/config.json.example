@@ -1,7 +1,7 @@
 {
     "project_endpoint": "<your-foundry-project-endpoint>",
     "agent_name": "code-interpreter-agent",
-    "agent_model": "<your-model-deployment-name>",
-    "user_query": "Describe the dataset columns using the file search tool, then use the code interpreter to compute the mean, standard deviation, and correlation with the Outcome column for each feature.",
+    "agent_model": "<your-gpt-5-mini-deployment-name>",
+    "user_query": "Analyse the diabetes dataset from the uploaded CSV: (1) calculate the percentage of diabetic vs non-diabetic patients, (2) compare average glucose levels between outcomes, and (3) provide descriptive statistics for all numeric features.",
     "csv_file": "data/diabetes.csv"
 }
