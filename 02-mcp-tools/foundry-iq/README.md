@@ -178,6 +178,7 @@ python agent_foundry_iq.py
 | `403` from ARM | Account lacks write permissions on the Foundry project |
 | `404` on MCP endpoint | `search_service_endpoint` or `knowledge_base_name` is wrong, or `2025-11-01-preview` API version not available in your region |
 | Semantic ranker error during index creation | Upgrade to Basic tier or higher |
+| `Semantic Search is not enabled for this service` (error from `knowledge_base_retrieve`) | Semantic ranker is disabled at the **service level** — run `az search service update --name <search-service> --resource-group <rg> --semantic-search free` (free tier supports 1,000 queries/month) |
 | Agent doesn't use the knowledge base | Check `allowed_tools` includes `knowledge_base_retrieve` and review agent instructions |
 
 ## References

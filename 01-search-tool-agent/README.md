@@ -9,7 +9,9 @@ This sample shows how to connect an Azure AI Foundry agent directly to an **Azur
 | **Retrieval** | Direct index query | Agentic pipeline: query planning, parallel subqueries, semantic reranking, answer synthesis |
 | **Setup** | Index only | Index + knowledge source + knowledge base |
 | **Connection type** | `CognitiveSearch` | `RemoteTool` (MCP endpoint) |
-| **Best for** | Simpler grounding, single index | Complex queries, multi-source retrieval, richer citations |
+| **Best for** | Focused, single-document queries | Complex queries requiring cross-document reasoning and synthesis |
+
+> **Query scope matters**: `AzureAISearchTool` issues a single query against one index and grounds the answer in the returned chunks. It works best for focused, self-contained questions whose answer lives in one document. For questions that span multiple documents — or that require synthesising information from several sources — the answer may be incomplete. Use **Foundry IQ** (sample 02) for those cases.
 
 ## Scripts
 
@@ -129,6 +131,7 @@ python agent_search_tool.py
 | Index not found | `index_name` mismatch — check case-sensitive name in Azure AI Search |
 | No citations in response | Update agent instructions to explicitly request citations; verify the index has a retrievable `source` field |
 | DNS resolution error with private endpoint | Search connection is using key-based auth — switch to `ProjectManagedIdentity` (RBAC) |
+| `Semantic Search is not enabled for this service` | Semantic ranker is disabled at the **service level** — run `az search service update --name <search-service> --resource-group <rg> --semantic-search free` (free tier supports 1,000 queries/month) |
 
 ## References
 
