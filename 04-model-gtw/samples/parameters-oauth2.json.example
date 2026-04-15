@@ -1,0 +1,64 @@
+{
+  "_comment": "Copy this file to parameters-<your-env>.json and fill in your real values. Files matching parameters-*.json are git-ignored.",
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectResourceId": {
+      "_comment": "Full ARM resource ID of the source Foundry project where the connection will be created.",
+      "value": "/subscriptions/<sub-id>/resourceGroups/<source-rg>/providers/Microsoft.CognitiveServices/accounts/<source-foundry-account>/projects/<project-name>"
+    },
+    "targetUrl": {
+      "_comment": "APIM AI Gateway endpoint including the /models path. Foundry appends /chat/completions at runtime, so the full path to APIM becomes <targetUrl>/chat/completions. Include both the APIM API suffix and /models — e.g. https://<apim-name>.azure-api.net/<api-suffix>/models",
+      "value": "https://<apim-name>.azure-api.net/<api-suffix>/models"
+    },
+    "gatewayName": {
+      "_comment": "Short identifier for the gateway — used to generate the connection name if connectionName is not set.",
+      "value": "<short-name>"
+    },
+    "connectionName": {
+      "_comment": "Name of the connection as it appears in your Foundry project. Use this value in config.json as gateway_connection_name.",
+      "value": "mg-<short-name>"
+    },
+    "authType": {
+      "value": "OAuth2"
+    },
+    "clientId": {
+      "_comment": "clientId (appId) from the SP created in the README setup steps.",
+      "value": "<clientId>"
+    },
+    "tokenUrl": {
+      "_comment": "Entra ID token endpoint for your tenant.",
+      "value": "https://login.microsoftonline.com/<tenantId>/oauth2/v2.0/token"
+    },
+    "scopes": {
+      "value": ["https://cognitiveservices.azure.com/.default"]
+    },
+    "deploymentInPath": {
+      "_comment": "false for the standard Foundry /models endpoint — deployment name goes in the request body, not the URL path.",
+      "value": "false"
+    },
+    "inferenceAPIVersion": {
+      "_comment": "Leave empty for the Foundry /models endpoint — no api-version query parameter is needed.",
+      "value": ""
+    },
+    "staticModels": {
+      "_comment": "List the deployment names exposed through the APIM AI Gateway. These must match the deployment names on the backend AI resource that APIM is configured to route to.",
+      "value": [
+        {
+          "name": "<deployment-name>",
+          "properties": {
+            "model": {
+              "name": "<model-name>",
+              "version": "<model-version>",
+              "format": "OpenAI"
+            }
+          }
+        }
+      ]
+    },
+    "isSharedToAll": {
+      "_comment": "Set to true to share the connection with all projects in the Foundry resource.",
+      "value": false
+    }
+  }
+}
