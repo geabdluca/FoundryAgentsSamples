@@ -15,6 +15,7 @@ End-to-end Python samples for building and running AI Agents with [Azure AI Foun
 | 01 | [01-search-tool-agent](./01-search-tool-agent/) | `AzureAISearchTool` | Agent that queries an Azure AI Search index directly for grounded, citation-backed answers. Simplest search integration — no knowledge base required. |
 | 02 | [02-mcp-tools/foundry-iq](./02-mcp-tools/foundry-iq/) | `MCPTool` (Foundry IQ) | Agent that connects to a Foundry IQ knowledge base via MCP for agentic retrieval: LLM-based query planning, parallel subqueries, semantic reranking, and answer synthesis. |
 | 03 | [03-code-interpreter-agent](./03-code-interpreter-agent/) | Code Interpreter | Agent that uses the built-in code interpreter tool to analyze data, run Python, and produce results programmatically. |
+| 04 | [04-model-gtw](./04-model-gtw/) | `ModelGateway` | Agent backed by a ModelGateway connection to route inference through an external AI gateway (e.g. APIM AI Gateway) using OAuth2 client credentials. |
 
 > **Search Tool vs Foundry IQ**: Both use Azure AI Search but differ in retrieval depth. `AzureAISearchTool` queries the index directly — simpler, faster to set up. Foundry IQ adds an agentic pipeline on top (query decomposition, reranking, synthesis) — better for complex queries and multi-source scenarios. See [01-search-tool-agent/README.md](./01-search-tool-agent/README.md) for a full comparison table.
 
