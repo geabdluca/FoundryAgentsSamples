@@ -39,3 +39,13 @@ All samples use [`DefaultAzureCredential`](https://learn.microsoft.com/en-us/pyt
 - **Production / hosted**: Managed Identity
 
 No API keys are used or required.
+
+## Validation environment
+
+These samples have been validated end-to-end in a **private Azure AI Foundry** environment with:
+
+- VNet-injected agents (no public network access on the Foundry resource)
+- Private endpoints for Azure AI Search and storage
+- All traffic routed over the private network
+
+If you are running in a public (non-VNet) environment the samples work the same way — the VNet setup only affects network routing, not the SDK code or configuration structure.

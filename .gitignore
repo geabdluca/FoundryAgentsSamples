@@ -8,6 +8,7 @@ env/
 .searchvenv/
 .foundryiqvenv/
 .codeinterpretervenv/
+.mgvenv/
 *.egg-info/
 dist/
 build/
@@ -19,6 +20,10 @@ build/
 # Sample configuration (may contain real endpoints/IDs - keep out of source control)
 # Copy config.json.example to config.json and fill in your real values locally.
 config.json
+
+# ModelGateway Bicep parameters files (contain real resource IDs and SP client IDs)
+# Copy samples/parameters-oauth2.json.example to samples/parameters-<your-env>.json locally.
+04-model-gtw/samples/parameters-*.json
 
 # IDE
 .vscode/

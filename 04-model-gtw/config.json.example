@@ -1,0 +1,17 @@
+{
+  "_comment": "Copy this file to config.json and fill in your real values. config.json is git-ignored.",
+
+  "_section_foundry": "--- Azure AI Foundry project ---",
+  "project_endpoint": "https://<your-foundry-resource>.services.ai.azure.com/api/projects/<your-project>",
+
+  "_section_gateway": "--- ModelGateway connection (deployed via connection-modelgateway.bicep) ---",
+  "_comment_gateway": "gateway_connection_name is the connectionName you set in the Bicep parameters file (e.g. mg-mygateway). model_deployment_name is the deployment name registered in the gateway's staticModels list.",
+  "gateway_connection_name": "mg-<short-name>",
+  "model_deployment_name": "<deployment-name-as-registered-in-gateway>",
+
+  "_section_agent": "--- Foundry Agent ---",
+  "agent_name": "agent-model-gateway",
+
+  "_section_query": "--- Query ---",
+  "user_query": "What are the key capabilities of the model you are powered by?"
+}
