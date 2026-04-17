@@ -23,6 +23,8 @@ Reference:
 """
 
 import json
+import logging
+import os
 import sys
 from pathlib import Path
 
@@ -35,6 +37,34 @@ from azure.identity import DefaultAzureCredential
 # ---------------------------------------------------------------------------
 
 CONFIG_PATH = Path(__file__).parent / "config.json"
+
+
+# ---------------------------------------------------------------------------
+# Verbose logging helper — uncomment the function body and the call in main()
+# to enable full HTTP request/response logging for debugging gateway issues.
+#
+# What each layer captures:
+#   httpcore  — TCP connect, TLS handshake, raw request/response headers
+#   httpx     — HTTP request/response summary
+#   openai    — SSE event parsing, retry logic, raw request options
+#   azure     — azure-identity token acquisition, azure-ai-projects API calls
+#   OPENAI_LOG=debug        — raw request/response bodies via openai SDK
+#   HTTPX_LOG_LEVEL=trace   — byte-level socket reads (individual SSE chunks)
+# ---------------------------------------------------------------------------
+def setup_verbose_logging() -> None:
+    pass
+    # logging.basicConfig(
+    #     level=logging.DEBUG,
+    #     format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+    #     datefmt="%H:%M:%S",
+    #     stream=sys.stderr,
+    # )
+    # logging.getLogger("httpx").setLevel(logging.DEBUG)
+    # logging.getLogger("httpcore").setLevel(logging.DEBUG)
+    # logging.getLogger("openai").setLevel(logging.DEBUG)
+    # logging.getLogger("azure").setLevel(logging.DEBUG)
+    # os.environ.setdefault("OPENAI_LOG", "debug")
+    # os.environ.setdefault("HTTPX_LOG_LEVEL", "trace")
 
 AGENT_INSTRUCTIONS = """
 You are a helpful assistant.
@@ -134,6 +164,9 @@ def run_query(project_client: AIProjectClient, agent, user_query: str) -> None:
 
 def main() -> None:
     cfg = load_config(CONFIG_PATH)
+
+    # Uncomment to enable verbose HTTP logging (see setup_verbose_logging above)
+    # setup_verbose_logging()
 
     project_endpoint = cfg["project_endpoint"]
     gateway_connection_name = cfg["gateway_connection_name"]

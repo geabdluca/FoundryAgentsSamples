@@ -13,5 +13,8 @@
   "agent_name": "agent-model-gateway",
 
   "_section_query": "--- Query ---",
-  "user_query": "What are the key capabilities of the model you are powered by?"
+  "user_query": "What are the key capabilities of the model you are powered by?",
+
+  "_section_debug": "--- Debugging ---",
+  "_comment_verbose": "To enable verbose HTTP logging, uncomment setup_verbose_logging() in agent_model_gateway.py"
 }
