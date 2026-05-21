@@ -1,0 +1,32 @@
+{
+  "_comment": "Copy this file to config.json and fill in your real values. config.json is git-ignored.",
+
+  "_section_foundry": "--- Azure AI Foundry project ---",
+  "project_endpoint": "https://<your-foundry-resource>.services.ai.azure.com/api/projects/<your-project>",
+  "project_resource_id": "/subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.MachineLearningServices/workspaces/<project-name>",
+
+  "_section_agent": "--- Foundry Agent ---",
+  "agent_name": "openapi-apim-agent",
+  "agent_model": "<your-model-deployment-name>",
+
+  "_section_apim": "--- Azure API Management ---",
+  "_comment_apim": "apim_service_name is just the name of the APIM resource (no domain). apim_api_path is the URL suffix used when creating the API in APIM.",
+  "apim_service_name": "<your-apim-service-name>",
+  "apim_api_path": "contoso/itdesk",
+
+  "_section_connection": "--- Foundry project connection for APIM subscription key ---",
+  "_comment_connection": "Set create_foundry_connection=true to have setup_apim_api.py create this connection automatically (requires project_resource_id). Set to false if the connection already exists in your Foundry project.",
+  "create_foundry_connection": true,
+  "apim_connection_name": "contoso-itdesk-apim",
+
+  "_section_apim_setup": "--- APIM API setup (only used when create_apim_api=true) ---",
+  "_comment_apim_setup": "Set create_apim_api=true to have setup_apim_api.py create the Contoso IT Helpdesk mock API on your APIM instance. Set to false if the API already exists.",
+  "create_apim_api": true,
+  "azure_subscription_id": "<your-azure-subscription-id>",
+  "apim_resource_group": "<your-apim-resource-group>",
+  "apim_product_id": "contoso-itdesk-product",
+  "apim_sub_name": "contoso-itdesk-sub",
+
+  "_section_query": "--- Sample query run by agent_openapi_apim.py ---",
+  "user_query": "How many open P2 incidents are there right now?"
+}

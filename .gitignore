@@ -9,6 +9,7 @@ env/
 .foundryiqvenv/
 .codeinterpretervenv/
 .mgvenv/
+.apimvenv/
 *.egg-info/
 dist/
 build/
@@ -24,6 +25,10 @@ config.json
 # ModelGateway Bicep parameters files (contain real resource IDs and SP client IDs)
 # Copy samples/parameters-oauth2.json.example to samples/parameters-<your-env>.json locally.
 04-model-gtw/samples/parameters-*.json
+
+# Local-only docs / policy files (not part of published samples)
+policies/
+SearchcapacityTSG.md
 
 # IDE
 .vscode/
